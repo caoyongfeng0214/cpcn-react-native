@@ -1,0 +1,61 @@
+{
+  "name": "cpcn-react-native",
+  "version": "0.1.0",
+  "description": "react native应用热更新",
+  "main": "CodePush.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/caoyongfeng0214/cpcn-react-native.git"
+  },
+  "keywords": [
+    "cpcn",
+    "react-native",
+    "codepush",
+    "code-push"
+  ],
+  "author": "me@caoyongfeng.com",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/caoyongfeng0214/cpcn-react-native/issues"
+  },
+  "homepage": "http://code-push.cn",
+  "typings": "typings/react-native-code-push.d.ts",
+  "dependencies": {
+    "code-push":"^2.0.7",
+    "glob": "^5.0.15",
+    "hoist-non-react-statics": "^2.3.1",
+    "inquirer": "^1.1.2",
+    "plist": "3.0.1",
+    "semver": "^5.6.0",
+    "xcode": "1.0.0"
+  },
+  "devDependencies": {
+    "archiver": "latest",
+    "body-parser": "latest",
+    "code-push-plugin-testing-framework": "file:./code-push-plugin-testing-framework",
+    "del": "latest",
+    "express": "latest",
+    "gulp-insert": "latest",
+    "gulp-tslint": "latest",
+    "gulp-typescript": "^5.0.1",
+    "mkdirp": "latest",
+    "q": "^1.5.1",
+    "run-sequence": "latest",
+    "tslint": "^5.18.0",
+    "typescript": "^2.9.2"
+  },
+  "rnpm": {
+    "android": {
+      "packageInstance": "new CodePush(getResources().getString(R.string.reactNativeCodePush_androidDeploymentKey), getApplicationContext(), BuildConfig.DEBUG)"
+    },
+    "ios": {
+      "sharedLibraries": [
+        "libz"
+      ]
+    },
+    "commands": {
+      "postlink": "node node_modules/react-native-code-push/scripts/postlink/run",
+      "postunlink": "node node_modules/react-native-code-push/scripts/postunlink/run"
+    }
+  }
+}
