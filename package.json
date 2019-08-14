@@ -1,6 +1,6 @@
 {
   "name": "cpcn-react-native",
-  "version": "0.1.0",
+  "version": "0.1.3",
   "description": "react native应用热更新",
   "main": "CodePush.js",
   "repository": {
@@ -54,8 +54,8 @@
       ]
     },
     "commands": {
-      "postlink": "node node_modules/react-native-code-push/scripts/postlink/run",
-      "postunlink": "node node_modules/react-native-code-push/scripts/postunlink/run"
+      "postlink": "node node_modules/cpcn-react-native/scripts/postlink/run",
+      "postunlink": "node node_modules/cpcn-react-native/scripts/postunlink/run"
     }
   }
 }

@@ -31,7 +31,7 @@ module.exports = () => {
         } else {
             console.log(`Couldn't find Android application entry point. You might need to update it manually. \
     Please refer to plugin configuration section for Android at \
-    https://github.com/microsoft/react-native-code-push#plugin-configuration-android for more details`);
+    http://code-push.cn for more details`);
         }
     }
 
@@ -41,7 +41,7 @@ module.exports = () => {
     if (!fs.existsSync(buildGradlePath)) {
         console.log(`Couldn't find build.gradle file. You might need to update it manually. \
     Please refer to plugin installation section for Android at \
-    https://github.com/microsoft/react-native-code-push#plugin-installation-android---manual`);
+    http://code-push.cn`);
     } else {
         var buildGradleContents = fs.readFileSync(buildGradlePath, "utf8");
         var codePushGradleLink = linkTools.codePushGradleLink;
