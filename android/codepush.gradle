@@ -57,7 +57,7 @@ gradle.projectsEvaluated {
             generateBundledResourcesHash = tasks.create(
                     name: "generateBundledResourcesHash${targetName}",
                     type: Exec) {
-                commandLine (*nodeExecutableAndArgs, "${nodeModulesPath}/react-native-code-push/scripts/generateBundledResourcesHash.js", resourcesDir, jsBundleFile, jsBundleDir)
+                commandLine (*nodeExecutableAndArgs, "${nodeModulesPath}/cpcn-react-native/scripts/generateBundledResourcesHash.js", resourcesDir, jsBundleFile, jsBundleDir)
 
                 enabled config."bundleIn${targetName}" ||
                 config."bundleIn${variant.buildType.name.capitalize()}" ?:
@@ -86,14 +86,14 @@ gradle.projectsEvaluated {
             generateBundledResourcesHash = tasks.create(
                     name: "generateBundledResourcesHash${targetName}",
                     type: Exec) {
-                commandLine (*nodeExecutableAndArgs, "${nodeModulesPath}/react-native-code-push/scripts/generateBundledResourcesHash.js", resourcesDir, jsBundleFile, jsBundleDir, resourcesMapTempFileName)
+                commandLine (*nodeExecutableAndArgs, "${nodeModulesPath}/cpcn-react-native/scripts/generateBundledResourcesHash.js", resourcesDir, jsBundleFile, jsBundleDir, resourcesMapTempFileName)
             }
 
             // Make this task run right before the bundle task
             def recordFilesBeforeBundleCommand = tasks.create(
                     name: "recordFilesBeforeBundleCommand${targetName}",
                     type: Exec) {
-                commandLine (*nodeExecutableAndArgs, "${nodeModulesPath}/react-native-code-push/scripts/recordFilesBeforeBundleCommand.js", resourcesDir, resourcesMapTempFileName)
+                commandLine (*nodeExecutableAndArgs, "${nodeModulesPath}/cpcn-react-native/scripts/recordFilesBeforeBundleCommand.js", resourcesDir, resourcesMapTempFileName)
             }
 
             recordFilesBeforeBundleCommand.dependsOn("merge${targetName}Resources")

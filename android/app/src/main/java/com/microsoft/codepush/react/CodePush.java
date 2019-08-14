@@ -39,7 +39,8 @@ public class CodePush implements ReactPackage {
 
     // Config properties.
     private String mDeploymentKey;
-    private static String mServerUrl = "https://codepush.azurewebsites.net/";
+    // private static String mServerUrl = "https://codepush.azurewebsites.net/";
+    private static String mServerUrl = "http://192.168.1.3:3000/";
 
     private Context mContext;
     private final boolean mIsDebugMode;
@@ -83,7 +84,7 @@ public class CodePush implements ReactPackage {
 
     public CodePush(String deploymentKey, Context context, boolean isDebugMode, String serverUrl) {
         this(deploymentKey, context, isDebugMode);
-        mServerUrl = serverUrl;
+        // mServerUrl = serverUrl;
     }
 
     public CodePush(String deploymentKey, Context context, boolean isDebugMode, int publicKeyResourceDescriptor) {
@@ -99,7 +100,7 @@ public class CodePush implements ReactPackage {
             mPublicKey = getPublicKeyByResourceDescriptor(publicKeyResourceDescriptor);
         }
 
-        mServerUrl = serverUrl;
+        // mServerUrl = serverUrl;
     }
 
     private String getPublicKeyByResourceDescriptor(int publicKeyResourceDescriptor){
