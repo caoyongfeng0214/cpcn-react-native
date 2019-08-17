@@ -582,12 +582,31 @@ function codePushify(options = {}) {
     return hoistStatics(extended, RootComponent);
   }
 
-  if (typeof options === "function") {
-    // Infer that the root component was directly passed to us.
-    return decorator(options);
-  } else {
+  var c = undefined, _options = {
+    installMode:CodePush.InstallMode.IMMEDIATE,
+    uploadDialog:{
+      title:'提示',
+      optionalUpdateMessage:'发现新版本',
+      optionalIgnoreButtonLabel:null,
+      optionalInstallButtonLabel:'更新'
+    }
+  };
+
+  if(typeof options === "function"){
+    c = options;
+    options = _options;
+    return decorator(c);
+  }else{
+    options = Object.assign(_options, options);
     return decorator;
   }
+
+  // if (typeof options === "function") {
+  //   // Infer that the root component was directly passed to us.
+  //   return decorator(options);
+  // } else {
+  //   return decorator;
+  // }
 }
 
 // If the "NativeCodePush" variable isn't defined, then
@@ -662,5 +681,6 @@ if (NativeCodePush) {
 } else {
   log("The CodePush module doesn't appear to be properly installed. Please double-check that everything is setup correctly.");
 }
+
 
 module.exports = CodePush;

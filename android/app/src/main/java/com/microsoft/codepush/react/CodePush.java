@@ -40,7 +40,7 @@ public class CodePush implements ReactPackage {
     // Config properties.
     private String mDeploymentKey;
     // private static String mServerUrl = "https://codepush.azurewebsites.net/";
-    private static String mServerUrl = "http://192.168.1.3:3000/";
+    private static String mServerUrl = "http://code-push.cn/";
 
     private Context mContext;
     private final boolean mIsDebugMode;

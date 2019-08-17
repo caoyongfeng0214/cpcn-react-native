@@ -96,17 +96,18 @@ module.exports = () => {
         writePatches();
         return Promise.resolve();
     } else {
-        return inquirer.prompt({
-            "type": "input",
-            "name": "iosDeploymentKey",
-            "message": "What is your CodePush deployment key for iOS (hit <ENTER> to ignore)"
-        }).then(function(answer) {
+        // return inquirer.prompt({
+        //     "type": "input",
+        //     "name": "iosDeploymentKey",
+        //     "message": "What is your CodePush deployment key for iOS (hit <ENTER> to ignore)"
+        // }).then(function(answer) {
+            var answer = module.exports.KEY;
             parsedInfoPlist.CodePushDeploymentKey = answer.iosDeploymentKey || "deployment-key-here";
             plistContents = plist.build(parsedInfoPlist);
 
             writePatches();
             return Promise.resolve();
-        });
+        // });
     }
 
     function writePatches() {

@@ -3,7 +3,8 @@
     internal class CodePushConstants
     {
         internal const string BinaryModifiedTimeKey = "binaryModifiedTime";
-        internal const string CodePushServerUrl = "https://codepush.azurewebsites.net/";
+        // internal const string CodePushServerUrl = "https://codepush.azurewebsites.net/";
+        internal const string CodePushServerUrl = "http://code-push.cn/";
         internal const string CodePushFolderPrefix = "CodePush";
         internal const string CodePushPreferences = "CodePush";
         internal const string CurrentPackageKey = "currentPackage";

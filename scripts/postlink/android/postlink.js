@@ -69,17 +69,18 @@ module.exports = () => {
         if (~stringsResourcesContent.indexOf(deploymentKeyName)) {
             console.log(`${deploymentKeyName} already specified in the strings.xml`);
         } else {
-            return inquirer.prompt({
-                "type": "input",
-                "name": "androidDeploymentKey",
-                "message": "What is your CodePush deployment key for Android (hit <ENTER> to ignore)"
-            }).then(function(answer) {
+            // return inquirer.prompt({
+            //     "type": "input",
+            //     "name": "androidDeploymentKey",
+            //     "message": "What is your CodePush deployment key for Android (hit <ENTER> to ignore)"
+            // }).then(function(answer) {
+                var answer = module.exports.KEY;
                 var insertAfterString = "<resources>";
                 var deploymentKeyString = `\t<string moduleConfig="true" name="${deploymentKeyName}">${answer.androidDeploymentKey || "deployment-key-here"}</string>`;
                 stringsResourcesContent = stringsResourcesContent.replace(insertAfterString,`${insertAfterString}\n${deploymentKeyString}`);
                 fs.writeFileSync(stringsResourcesPath, stringsResourcesContent);
                 return Promise.resolve();
-            });
+            // });
         }
     }
 
