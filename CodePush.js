@@ -525,8 +525,36 @@ function codePushify(options = {}) {
     );
   }
 
+  let Fragment = React.Fragment;
+  let View = ReactNative.View;
+  let ActivityIndicator = ReactNative.ActivityIndicator;
+
   var decorator = (RootComponent) => {
+    let cpcnUpdateProgress = {
+      visible:false,
+      receivedBytes:0,
+      totalBytes: 0
+    };
+    let hasCodePushDownloadDidProgress = !!RootComponent.prototype.codePushDownloadDidProgress;
     const extended = class CodePushComponent extends React.Component {
+      constructor(props){
+        super(props);
+        var _state = {
+          cpcnUpdateProgress:cpcnUpdateProgress
+        };
+        if(this.state){
+          this.setState(_state);
+        }else{
+          this.state = _state;
+        }
+
+        cpcnUpdateProgress.setData = (obj)=>{
+          this.setState({
+            cpcnUpdateProgress:obj
+          });
+        };
+      }
+
       componentDidMount() {
         if (options.checkFrequency === CodePush.CheckFrequency.MANUAL) {
           CodePush.notifyAppReady();
@@ -575,8 +603,48 @@ function codePushify(options = {}) {
           props.ref = "rootComponent";
         }
 
-        return <RootComponent {...props} />
+        if(hasCodePushDownloadDidProgress){
+          return <RootComponent {...props} />
+        }else{
+          return (
+            <Fragment>
+              <RootComponent {...props} />
+              {
+                this.state.cpcnUpdateProgress.visible
+                &&
+                <View style={{position:"absolute", left:0, top:0, right:0, bottom:0, backgroundColor:"rgba(50,50,50,0.7)",height:"100%",flex:1,flexDirection:'column',justifyContent: 'center',alignItems:"center"}}>
+                  {/* <View style={{width:"80%",border:"1px solid #555",backgroundColor:"#111",height:16,padding:2,borderRadius:8}}>
+                    <View style={{width:(this.state.cpcnUpdateProgress.totalBytes == 0 ? 1 : this.state.cpcnUpdateProgress.receivedBytes / this.state.cpcnUpdateProgress.totalBytes * 100).toFixed(2) + '%',height:"100%",backgroundColor:"#d5d3ae",borderRadius:6}}></View>
+                  </View> */}
+                  <ActivityIndicator size="large" color="#00ff00" />
+                </View>
+              }
+            </Fragment>
+          );
+        }
       }
+    }
+
+    if(!hasCodePushDownloadDidProgress){
+      RootComponent.prototype.codePushDownloadDidProgress = function(progress){
+        cpcnUpdateProgress.setData({
+          visible:true,
+          receivedBytes:progress.receivedBytes,
+          totalBytes:progress.totalBytes
+        });
+      }
+
+      // RootComponent.prototype.codePushStatusDidChange = function(status) {
+      //   switch(status) {
+      //     case CodePush.SyncStatus.UPDATE_INSTALLED:
+      //       setTimeout(()=>{
+      //         cpcnUpdateProgress.setData({
+      //           visible:false
+      //         });
+      //       }, 1000);
+      //       break;
+      //   }
+      // }
     }
 
     return hoistStatics(extended, RootComponent);
@@ -584,11 +652,11 @@ function codePushify(options = {}) {
 
   var c = undefined, _options = {
     installMode:CodePush.InstallMode.IMMEDIATE,
-    uploadDialog:{
+    updateDialog:{
       title:'提示',
       optionalUpdateMessage:'发现新版本',
       optionalIgnoreButtonLabel:null,
-      optionalInstallButtonLabel:'更新'
+      optionalInstallButtonLabel:'立即更新'
     }
   };
 
@@ -681,6 +749,38 @@ if (NativeCodePush) {
 } else {
   log("The CodePush module doesn't appear to be properly installed. Please double-check that everything is setup correctly.");
 }
+
+
+// options.checkCallback(remotePackage, function(agreeContinue))
+// options.downloadProgressCallback(downloadProgress)
+// options.installedCallback(function(restart))
+CodePush.check = function(options){
+  CodePush.checkForUpdate().then((remotePackage) => {
+    if(options.checkCallback){
+      options.checkCallback(remotePackage, (agreeContinue) => {
+        if(agreeContinue && remotePackage && !remotePackage.failedInstall){
+          remotePackage.download((downloadProgress) => {
+            if(options.downloadProgressCallback){
+              options.downloadProgressCallback(downloadProgress);
+            }
+          }).then((localPackage) => {
+            localPackage.install(CodePush.InstallMode.ON_NEXT_RESTART).then(() => {
+              if(options.installedCallback){
+                options.installedCallback((restart) => {
+                  if(restart){
+                    CodePush.restartApp();
+                  }
+                });
+              }else{
+                CodePush.restartApp();
+              }
+            });
+          });
+        }
+      });
+    }
+  });
+};
 
 
 module.exports = CodePush;

@@ -70,5 +70,16 @@ module.exports = () => {
             }
         }
     }
+
+
+    var path = require('path');
+    var podfilePath = path.join(__dirname, '../../../../../ios/Podfile');
+    if(fs.existsSync(podfilePath)){
+        var podfileContent = fs.readFileSync(podfilePath, "utf8");
+        podfileContent = podfileContent.replace(new RegExp("\\t*pod\\s+'CodePush'[\\s\\S]*?\\n", 'gi'), "");
+        fs.writeFileSync(podfilePath, podfileContent);
+    }
+
+
     return Promise.resolve();
 }

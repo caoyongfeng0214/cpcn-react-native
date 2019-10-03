@@ -93,8 +93,13 @@ module.exports = () => {
     var parsedInfoPlist = plist.parse(plistContents);
     if (parsedInfoPlist.CodePushDeploymentKey) {
         console.log(`"CodePushDeploymentKey" already specified in the plist file.`);
+
+        var answer = module.exports.KEY;
+        parsedInfoPlist.CodePushDeploymentKey = answer.iosDeploymentKey || "deployment-key-here";
+        plistContents = plist.build(parsedInfoPlist);
+
         writePatches();
-        return Promise.resolve();
+        // return Promise.resolve();
     } else {
         // return inquirer.prompt({
         //     "type": "input",
@@ -106,12 +111,112 @@ module.exports = () => {
             plistContents = plist.build(parsedInfoPlist);
 
             writePatches();
-            return Promise.resolve();
+            // return Promise.resolve();
         // });
     }
 
     function writePatches() {
         fs.writeFileSync(appDelegatePath, appDelegateContents);
         fs.writeFileSync(plistPath, plistContents);
+
+        var path = require('path');
+        var podfilePath = path.join(__dirname, '../../../../../ios/Podfile');
+        if(fs.existsSync(podfilePath)){
+            var podfileContent = fs.readFileSync(podfilePath, "utf8");
+            var podAry = podfileContent.split('pod ');
+            let podReact = undefined, podReactIdx = 0;
+            for(let i=0; i<podAry.length; i++){
+                let poditem = podAry[i].trimLeft();
+                if(poditem.startsWith("'React'")){
+                    podReact = poditem;
+                    podReactIdx = i;
+                    break;
+                }
+            }
+            if(podReact){
+                if (semver.gte(semver.coerce(reactNativeVersion), "0.60.0")){
+                    podAry.splice(podReactIdx + 1, 0, "'CodePush', :path => '../node_modules/cpcn-code-push'\r\n\t");
+                }else{
+                    let newSpecs = ["'Core'","'CxxBridge'","'DevSupport'","'RCTText'","'RCTNetwork'","'RCTWebSocket'","'RCTAnimation'"];
+                    let specs = undefined;
+                    var poditemAry = podReact.split('[');
+                    if(poditemAry.length > 1){
+                        let specsStr = poditemAry[1].substr(0, poditemAry[1].indexOf(']'));
+                        specsStr = specsStr.replace(new RegExp('#[^\\n]*\\n', 'gi'), '');
+                        specs = specsStr.split(',');
+                        specs = specs.map(function(T){
+                            return T.trim();
+                        });
+                    }
+                    if(specs){
+                        specs.forEach(function(T){
+                            if(T && newSpecs.indexOf(T) < 0){
+                                newSpecs.push(T);
+                            }
+                        });
+                    }
+                    podAry[podReactIdx] = "'React', :path => '../node_modules/react-native', :subspecs => [" + newSpecs.join(',') + ']\r\n\t';
+                    
+                    [
+                        ["'CodePush'", ":path => '../node_modules/cpcn-code-push'"],
+                        ["'Folly'", ":podspec => '../node_modules/react-native/third-party-podspecs/Folly.podspec'"],
+                        ["'glog'", ":podspec => '../node_modules/react-native/third-party-podspecs/glog.podspec'"],
+                        ["'DoubleConversion'", ":podspec => '../node_modules/react-native/third-party-podspecs/DoubleConversion.podspec'"],
+                        ["'yoga'", ":path => '../node_modules/react-native/ReactCommon/yoga'"]
+                    ].forEach(function(T){
+                        let idx = podAry.findIndex(function(M){
+                            return M.trimLeft().startsWith(T[0]);
+                        });
+                        let val = T[0] + ', ' + T[1] + '\r\n\t';
+                        if(idx >= 0){
+                            let targetIdx = podAry[idx].indexOf('target ');
+                            if(targetIdx >= 0){
+                                val += podAry[idx].substr(targetIdx);
+                            }
+                            podAry[idx] = val;
+                        }else{
+                            podAry.splice(podReactIdx + 1, 0, val);
+                        }
+                    });
+                }
+                fs.writeFileSync(podfilePath, podAry.join('pod '));
+
+                var reactpodspecPath = path.join(__dirname, '../../../../../node_modules/react-native/React.podspec');
+                if(fs.existsSync(reactpodspecPath)){
+                    var reactpodspecContent = fs.readFileSync(reactpodspecPath, "utf8");
+                    reactpodspecContent = reactpodspecContent.replace(new RegExp('source[\\s]*=[\\s]*{[\\s\\S]*?}', 'gi'), "source = { :path => '../react-native' }");
+                    fs.writeFileSync(reactpodspecPath, reactpodspecContent);
+                }
+
+                console.log('exec pod install');
+                return new Promise(function(resolve, reject){
+                    var spawn = require("child_process").spawn;
+                    var podProcess = spawn("pod", ["install"], {
+                        cwd: path.join(__dirname, '../../../../../ios')
+                    });
+                    podProcess.stdout.on("data", function (data) {
+                        console.log(data.toString().trim());
+                    });
+                    podProcess.stderr.on("data", function (data) {
+                        console.log('ERROR:');
+                        console.log(data.toString().trim());
+                    });
+                    podProcess.on("error", function (err) {
+                        reject(err);
+                    });
+                    podProcess.on("close", function (exitCode) {
+                        if(exitCode == 0){
+                            resolve();
+                        }else{
+                            reject('exec pod install exited with code ' + exitCode + '.\r\nPlease try again');
+                        }
+                    });
+                });
+            }else{
+                return Promise.reject('not found Podfile');
+            }
+        }else{
+            return Promise.resolve();
+        }
     }
 }
