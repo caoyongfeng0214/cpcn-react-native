@@ -20,6 +20,9 @@ module.exports = () => {
             var reactNativeHostInstantiation = linkTools.reactNativeHostInstantiation;
             mainApplicationContents = mainApplicationContents.replace(reactNativeHostInstantiation,
                 `${reactNativeHostInstantiation}${getJSBundleFileOverride}`);
+            if(mainApplicationContents.indexOf('import com.microsoft.codepush.react.CodePush;') < 0){
+                mainApplicationContents = mainApplicationContents.replace("public class MainApplication", "import com.microsoft.codepush.react.CodePush;\r\npublic class MainApplication");
+            }
             fs.writeFileSync(mainApplicationPath, mainApplicationContents);
         }
     } else {
