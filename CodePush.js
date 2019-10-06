@@ -755,31 +755,33 @@ if (NativeCodePush) {
 // options.downloadProgressCallback(downloadProgress)
 // options.installedCallback(function(restart))
 CodePush.check = function(options){
-  CodePush.checkForUpdate().then((remotePackage) => {
-    if(options.checkCallback){
-      options.checkCallback(remotePackage, (agreeContinue) => {
-        if(agreeContinue && remotePackage && !remotePackage.failedInstall){
-          remotePackage.download((downloadProgress) => {
-            if(options.downloadProgressCallback){
-              options.downloadProgressCallback(downloadProgress);
-            }
-          }).then((localPackage) => {
-            localPackage.install(CodePush.InstallMode.ON_NEXT_RESTART).then(() => {
-              if(options.installedCallback){
-                options.installedCallback((restart) => {
-                  if(restart){
-                    CodePush.restartApp();
-                  }
+    CodePush.notifyAppReady().then(() => {
+        CodePush.checkForUpdate().then((remotePackage) => {
+            if(options.checkCallback){
+                options.checkCallback(remotePackage, (agreeContinue) => {
+                    if(agreeContinue && remotePackage && !remotePackage.failedInstall){
+                        remotePackage.download((downloadProgress) => {
+                            if(options.downloadProgressCallback){
+                            options.downloadProgressCallback(downloadProgress);
+                            }
+                        }).then((localPackage) => {
+                            localPackage.install(CodePush.InstallMode.ON_NEXT_RESTART).then(() => {
+                                if(options.installedCallback){
+                                    options.installedCallback((restart) => {
+                                        if(restart){
+                                            CodePush.restartApp();
+                                        }
+                                    });
+                                }else{
+                                    CodePush.restartApp();
+                                }
+                            });
+                        });
+                    }
                 });
-              }else{
-                CodePush.restartApp();
-              }
-            });
-          });
-        }
-      });
-    }
-  });
+            }
+        });
+    });
 };
 
 
