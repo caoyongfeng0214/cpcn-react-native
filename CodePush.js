@@ -762,18 +762,22 @@ CodePush.check = function(options){
                     if(agreeContinue && remotePackage && !remotePackage.failedInstall){
                         remotePackage.download((downloadProgress) => {
                             if(options.downloadProgressCallback){
-                            options.downloadProgressCallback(downloadProgress);
+                                options.downloadProgressCallback(downloadProgress);
                             }
                         }).then((localPackage) => {
                             localPackage.install(CodePush.InstallMode.ON_NEXT_RESTART).then(() => {
                                 if(options.installedCallback){
                                     options.installedCallback((restart) => {
                                         if(restart){
-                                            CodePush.restartApp();
+                                            setTimeout(() => {
+                                                CodePush.restartApp();
+                                            }, 0);
                                         }
                                     });
                                 }else{
-                                    CodePush.restartApp();
+                                    setTimeout(() => {
+                                        CodePush.restartApp();
+                                    }, 0);
                                 }
                             });
                         });
