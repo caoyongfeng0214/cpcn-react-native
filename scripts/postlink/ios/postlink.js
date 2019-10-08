@@ -135,7 +135,7 @@ module.exports = () => {
             }
             if(podReact){
                 if (semver.gte(semver.coerce(reactNativeVersion), "0.60.0")){
-                    podAry.splice(podReactIdx + 1, 0, "'CodePush', :path => '../node_modules/cpcn-code-push'\r\n\t");
+                    podAry.splice(podReactIdx + 1, 0, "'CodePush', :path => '../node_modules/cpcn-react-native'\r\n\t");
                 }else{
                     let newSpecs = ["'Core'","'CxxBridge'","'DevSupport'","'RCTText'","'RCTNetwork'","'RCTWebSocket'","'RCTAnimation'"];
                     let specs = undefined;
@@ -158,7 +158,7 @@ module.exports = () => {
                     podAry[podReactIdx] = "'React', :path => '../node_modules/react-native', :subspecs => [" + newSpecs.join(',') + ']\r\n\t';
                     
                     [
-                        ["'CodePush'", ":path => '../node_modules/cpcn-code-push'"],
+                        ["'CodePush'", ":path => '../node_modules/cpcn-react-native'"],
                         ["'Folly'", ":podspec => '../node_modules/react-native/third-party-podspecs/Folly.podspec'"],
                         ["'glog'", ":podspec => '../node_modules/react-native/third-party-podspecs/glog.podspec'"],
                         ["'DoubleConversion'", ":podspec => '../node_modules/react-native/third-party-podspecs/DoubleConversion.podspec'"],

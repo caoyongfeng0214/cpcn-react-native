@@ -750,39 +750,55 @@ if (NativeCodePush) {
   log("The CodePush module doesn't appear to be properly installed. Please double-check that everything is setup correctly.");
 }
 
+var resetAgreeContinue = function(){
+    CodePush.agreeContinue = function(){
+        console.log('not found package');
+    };
+};
 
 // options.checkCallback(remotePackage, function(agreeContinue))
 // options.downloadProgressCallback(downloadProgress)
 // options.installedCallback(function(restart))
 CodePush.check = function(options){
+    resetAgreeContinue();
     CodePush.notifyAppReady().then(() => {
         CodePush.checkForUpdate().then((remotePackage) => {
             if(options.checkCallback){
-                options.checkCallback(remotePackage, (agreeContinue) => {
-                    if(agreeContinue && remotePackage && !remotePackage.failedInstall){
-                        remotePackage.download((downloadProgress) => {
-                            if(options.downloadProgressCallback){
-                                options.downloadProgressCallback(downloadProgress);
+                if(remotePackage && remotePackage.failedInstall){
+                    remotePackage = null;
+                }
+                if(remotePackage){
+                    CodePush.agreeContinue = (agreeContinue) => {
+                        if(agreeContinue && remotePackage && !remotePackage.failedInstall){
+                            if(options.onDownload){
+                                options.onDownload();
                             }
-                        }).then((localPackage) => {
-                            localPackage.install(CodePush.InstallMode.ON_NEXT_RESTART).then(() => {
-                                if(options.installedCallback){
-                                    options.installedCallback((restart) => {
-                                        if(restart){
-                                            setTimeout(() => {
-                                                CodePush.restartApp();
-                                            }, 0);
-                                        }
-                                    });
-                                }else{
-                                    setTimeout(() => {
-                                        CodePush.restartApp();
-                                    }, 0);
+                            remotePackage.download((downloadProgress) => {
+                                if(options.downloadProgressCallback){
+                                    options.downloadProgressCallback(downloadProgress);
                                 }
+                            }).then((localPackage) => {
+                                localPackage.install(CodePush.InstallMode.ON_NEXT_RESTART).then(() => {
+                                    if(options.installedCallback){
+                                        options.installedCallback((restart) => {
+                                            if(restart){
+                                                setTimeout(() => {
+                                                    CodePush.restartApp();
+                                                }, 0);
+                                            }
+                                        });
+                                    }else{
+                                        setTimeout(() => {
+                                            CodePush.restartApp();
+                                        }, 0);
+                                    }
+                                });
                             });
-                        });
-                    }
-                });
+                        }
+                        resetAgreeContinue();
+                    };
+                }
+                options.checkCallback(remotePackage, CodePush.agreeContinue);
             }
         });
     });

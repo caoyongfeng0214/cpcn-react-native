@@ -6,6 +6,9 @@ var link = require('./postlink');
 link.KEY = {
     iosDeploymentKey: key
 };
-link().catch((err)=>{
-    console.log(err instanceof Object ? (err.message ? err.message : JSON.stringify(err)) : err);
-});
+var linkre = link()
+if(linkre && linkre.catch){
+    linkre.catch((err)=>{
+        console.log(err instanceof Object ? (err.message ? err.message : JSON.stringify(err)) : err);
+    });
+}
