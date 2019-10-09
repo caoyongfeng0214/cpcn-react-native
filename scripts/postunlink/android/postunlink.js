@@ -16,7 +16,7 @@ module.exports = () => {
             console.log(`"getJSBundleFile" is already removed`);
         } else {
             mainApplicationContents = mainApplicationContents.replace(`${getJSBundleFileOverride}`, "");
-            mainApplicationContents = mainApplicationContents.replace('import com.microsoft.codepush.react.CodePush;', '');
+            mainApplicationContents = mainApplicationContents.replace('import com.microsoft.codepush.react.CodePush;\r\n', '').replace('import com.microsoft.codepush.react.CodePush;', '');
             fs.writeFileSync(mainApplicationPath, mainApplicationContents);
         }
     } else {
