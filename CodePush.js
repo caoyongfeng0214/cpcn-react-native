@@ -800,6 +800,10 @@ CodePush.check = function(options){
                 }
                 options.checkCallback(remotePackage, CodePush.agreeContinue);
             }
+        }).catch((ex) => {
+            if(ex.message && ex.message.indexOf('已过期')){
+                alert(ex.message);
+            }
         });
     });
 };
