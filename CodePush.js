@@ -505,26 +505,145 @@ async function syncInternal(options = {}, syncStatusChangeCallback, downloadProg
 
 let CodePush;
 
-function codePushify(options = {}) {
-  let React;
-  let ReactNative = require("react-native");
+let React;
+let ReactNative = require("react-native");
 
-  try { React = require("react"); } catch (e) { }
-  if (!React) {
+try { React = require("react"); } catch (e) { }
+if (!React) {
     try { React = ReactNative.React; } catch (e) { }
     if (!React) {
-      throw new Error("Unable to find the 'React' module.");
+        throw new Error("Unable to find the 'React' module.");
     }
-  }
+}
 
-  if (!React.Component) {
+if (!React.Component) {
     throw new Error(
-`Unable to find the "Component" class, please either:
-1. Upgrade to a newer version of React Native that supports it, or
-2. Call the codePush.sync API in your component instead of using the @codePush decorator`
+    `Unable to find the "Component" class, please either:
+    1. Upgrade to a newer version of React Native that supports it, or
+    2. Call the codePush.sync API in your component instead of using the @codePush decorator`
     );
-  }
+}
 
+let setLocal = function(key, val, callbackFun) {
+    try {
+        if(ReactNative.AsyncStorage) {
+            ReactNative.AsyncStorage.setItem(key, val, () => {
+                if(callbackFun) {
+                    callbackFun();
+                }
+            });
+        } else {
+            if(!React.$localData) {
+                React.$localData = {};
+            }
+            React.$localData[key] = val;
+            if(callbackFun) {
+                callbackFun();
+            }
+        }
+    } catch(err) {
+        if(callbackFun) {
+            callbackFun();
+        }
+    }
+};
+
+let getLocal = function(key, callbackFun) {
+    try {
+        if(ReactNative.AsyncStorage) {
+            ReactNative.AsyncStorage.getItem(key, (err, val) => {
+                callbackFun(val);
+            });
+        } else {
+            if(React.$localData) {
+                callbackFun(React.$localData[key]);
+            } else {
+                callbackFun(undefined);
+            }
+        }
+    } catch(err) {
+        callbackFun(undefined);
+    }
+};
+
+let _mapFootprintProps = function(props) {
+    let _ps = props ? {...props} : {};
+    if(_ps.footprint) {
+        let _evt = 'onPress', _k = undefined;
+        let ty = typeof(_ps.footprint);
+        if(ty === 'object') {
+            _evt = _ps.footprint.evt;
+            _k = _ps.footprint.key;
+        } else if(ty === 'string') {
+            _k = _ps.footprint;
+        }
+        if(_evt && _k) {
+            let _onEvt = _ps[_evt];
+            _ps[_evt] = function() {
+                if(_onEvt) {
+                    _onEvt.apply(this, arguments);
+                }
+                CodePush.footprint(_k);
+            };
+        }
+        delete _ps.footprint;
+    }
+    return _ps;
+};
+
+let createCmp = function(cmpName) {
+    let _cmp = ReactNative[cmpName];
+    if(_cmp && !_cmp.__$cpcn__) {
+        if(_cmp.prototype) {
+            let _rRender = _cmp.prototype.render;
+            if(_rRender) {
+                let NCmp = class extends _cmp {
+                    constructor(props) {
+                        super(props);
+                    }
+
+                    render() {
+                        return _rRender.apply(this, arguments);
+                    }
+                }
+                _cmp.prototype.render = function() {
+                    let _ps = _mapFootprintProps(this.props);
+                    return <NCmp {..._ps}></NCmp>
+                };
+                _cmp.__$cpcn__ =  1;
+            }
+        } else if(_cmp.render) {
+            let _rRender = _cmp.render;
+            _cmp.render = function() {
+                let props = _mapFootprintProps(arguments[0]);
+                arguments[0] = props;
+                return _rRender.apply(this, arguments);
+            };
+
+            _cmp.__$cpcn__ =  1;
+        }
+    }
+};
+
+['Button', 'TouchableOpacity', 'Text'].forEach((T) => {
+    createCmp(T);
+});
+
+if(!React.Component.__$cpcn__) {
+    React.Component.prototype.footprint = function(key) {
+        let _componentDidMount = this.componentDidMount;
+        this.componentDidMount = () => {
+            if(_componentDidMount) {
+                _componentDidMount.apply(this, arguments);
+            }
+            CodePush.footprint(key);
+        };
+    };
+    React.Component.__$cpcn__ = 1;
+}
+
+
+function codePushify(options = {}) {
   let Fragment = React.Fragment;
   let View = ReactNative.View;
   let ActivityIndicator = ReactNative.ActivityIndicator;
@@ -807,6 +926,126 @@ CodePush.check = function(options){
         });
     });
 };
+
+let _useFootprint = false, _canUseFootprint = false,
+    _footprintChecked = false, _footprintChecking = false, _footprintChecks = undefined;
+
+async function getConfig(callbackFun) {
+    let cfg = await getConfiguration();
+    let _serverUrl = cfg.serverUrl;
+    if (_serverUrl.slice(-1) !== "/") {
+        _serverUrl += "/";
+    }
+    callbackFun(cfg, _serverUrl);
+};
+
+React.useFootprint = CodePush.useFootprint = function() {
+    _useFootprint = true;
+    CodePush.checkFootprint();
+};
+
+CodePush.checkFootprint = function(callbackFun) {
+    if(_footprintChecked) {
+        if(callbackFun) {
+            callbackFun(_canUseFootprint);
+        }
+    } else {
+        if(callbackFun) {
+            if(!_footprintChecks) {
+                _footprintChecks = [];
+            }
+            _footprintChecks.push(callbackFun);
+        }
+        if(!_footprintChecking) {
+            _footprintChecking = true;
+            getConfig((cfg, _serverUrl) => {// clientUniqueId  deploymentKey
+                getLocal('___cpcn_launch__', (launch) => {
+                    let ps = {deploymentKey:cfg.deploymentKey};
+                    let dt = new Date();
+                    dt = dt.getFullYear() + ((dt.getMonth() + 1) + '').padStart(2, '0') + (dt.getDate() + '').padStart(2, '0');
+                    let f = function() {
+                        requestFetchAdapter.request(2 /* POST */, _serverUrl + 'apps/check', JSON.stringify(ps), function (error, response) {
+                            if (response && response.statusCode == 200 && response.body) {
+                                try {
+                                    let result = JSON.parse(response.body);
+                                    if(result.err == 0 || (result.err == 1 || result.err == 404)) {
+                                        if(result.err == 0) {
+                                            _canUseFootprint = true;
+                                        } else {
+                                            _canUseFootprint = false;
+                                        }
+                                        _footprintChecked = true;
+                                        if(_footprintChecks) {
+                                            while(_footprintChecks.length > 0) {
+                                                let f = _footprintChecks.shift();
+                                                if(f) {
+                                                    f.apply(this, [_canUseFootprint]);
+                                                }
+                                            }
+                                        }
+                                    }
+                                } catch(e) {}
+                            }
+                            _footprintChecking = false;
+                        });
+                    };
+                    if(!launch || launch != dt) {
+                        ps.launch = 1;
+                        setLocal('___cpcn_launch__', dt, () => {
+                            f();
+                        });
+                    } else {
+                        f();
+                    }
+                });
+            });
+        }
+    }
+};
+
+let _sendFootprints = undefined, _sendFootPrintting = false;
+
+let _sendFootprint = function() {
+    if(!_sendFootPrintting && _sendFootprints) {
+        _sendFootPrintting = true;
+        let _k = _sendFootprints.shift();
+        if(_k) {
+            getConfig((cfg, _serverUrl) => {// clientUniqueId  deploymentKey
+                requestFetchAdapter.request(2 /* POST */, _serverUrl + 'apps/footprint', JSON.stringify({deploymentKey:cfg.deploymentKey, k:_k}), function (error, response) {
+                    _sendFootPrintting = false;
+                    _sendFootprint();
+                });
+            });
+        } else {
+            _sendFootPrintting = false;
+        }
+    }
+};
+
+React.footprint = CodePush.footprint = function(footprintKey) {
+    if(_useFootprint && footprintKey && typeof(footprintKey) === 'string') {
+        footprintKey = footprintKey.replace(/\s/g, '');
+        if(footprintKey.length > 10) {
+            footprintKey = footprintKey.substr(0, 10);
+        }
+        CodePush.checkFootprint(() => {
+            if(_canUseFootprint) {
+                if(!_sendFootprints) {
+                    _sendFootprints = [];
+                }
+                if(_sendFootprints.length <= 2) {
+                    _sendFootprints.push(footprintKey);
+                }
+                _sendFootprint();
+            }
+        });
+    }
+};
+
+
+React.setLocal = CodePush.setLocal = setLocal;
+
+React.getLocal = CodePush.getLocal = getLocal;
 
 
 module.exports = CodePush;
