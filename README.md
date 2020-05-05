@@ -7,3 +7,5 @@
 
 ## 文档
 [http://code-push.cn/docs/1100.htm](http://code-push.cn/docs/1100.htm)
+
+[http://code-push.cn/docs/1700.htm](http://code-push.cn/docs/1700.htm)
