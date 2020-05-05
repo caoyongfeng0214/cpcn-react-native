@@ -11,7 +11,8 @@
     "cpcn",
     "react-native",
     "codepush",
-    "code-push"
+    "code-push",
+    "用户行为分析"
   ],
   "author": "me@caoyongfeng.com",
   "license": "ISC",
