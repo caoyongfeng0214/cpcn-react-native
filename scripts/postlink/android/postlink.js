@@ -7,6 +7,7 @@ module.exports = () => {
     console.log("Running android postlink script");
 
     var buildGradlePath = linkTools.getBuildGradlePath();
+    var settingsGradlePath = linkTools.getSettingsGradlePath();
     var mainApplicationPath = linkTools.getMainApplicationLocation();
 
     // 1. Add the getJSBundleFile override
@@ -60,6 +61,18 @@ module.exports = () => {
         buildGradleContents = buildGradleContents.replace(reactGradleLink,
             `${reactGradleLink}${codePushGradleLink}`);
         fs.writeFileSync(buildGradlePath, buildGradleContents);
+    }
+
+    if (fs.existsSync(settingsGradlePath)) {
+        var settingsGradleContents = fs.readFileSync(settingsGradlePath, "utf8");
+        var includeApp = settingsGradleContents.match(/include ["']:app["']/)[0];
+        var settingsGradeInclude = linkTools.settingsGradeInclude;
+        if(settingsGradleContents.indexOf(settingsGradeInclude) < 0) {
+            settingsGradleContents = settingsGradleContents.replace(includeApp,
+                `${settingsGradeInclude}`);
+            settingsGradleContents += (settingsGradleContents[settingsGradleContents.length - 1] == '\n' ? '' : '\n') + "project(':cpcn-react-native').projectDir = new File(rootProject.projectDir, '../node_modules/cpcn-react-native/android/app')";
+            fs.writeFileSync(settingsGradlePath, settingsGradleContents);
+        }
     }
 
     //3. Add deployment key

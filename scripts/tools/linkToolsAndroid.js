@@ -14,6 +14,7 @@ exports.getJSBundleFileOverride = `
 exports.reactNativeHostInstantiation = "new ReactNativeHost(this) {";
 exports.mainActivityClassDeclaration = "public class MainActivity extends ReactActivity {";
 exports.codePushGradleLink = `\napply from: "../../node_modules/cpcn-react-native/android/codepush.gradle"`;
+exports.settingsGradeInclude = "include ':app', ':cpcn-react-native'";
 exports.deploymentKeyName = "reactNativeCodePush_androidDeploymentKey";
 
 exports.getMainApplicationLocation = function () {
@@ -30,6 +31,10 @@ exports.getStringsResourcesPath = function () {
 
 exports.getBuildGradlePath = function () {
     return path.join("android", "app", "build.gradle");
+}
+
+exports.getSettingsGradlePath = function () {
+    return path.join("android", "settings.gradle");
 }
 
 exports.isJsBundleOverridden = function (codeContents) {
