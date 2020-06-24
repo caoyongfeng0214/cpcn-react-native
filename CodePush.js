@@ -920,7 +920,8 @@ CodePush.check = function(options){
                 options.checkCallback(remotePackage, CodePush.agreeContinue);
             }
         }).catch((ex) => {
-            if(ex.message && ex.message.indexOf('已过期') >= 0){
+            if(ex.message
+                && (ex.message.indexOf('已过期') >= 0 || ex.message.indexOf('续费') >= 0)){
                 alert(ex.message);
             }
         });
