@@ -11,5 +11,8 @@
 [http://code-push.cn/docs/1700.htm](http://code-push.cn/docs/1700.htm)
 
 ## 日志
+2023年7月23日
+* 在 React Native v0.7*.* 上测试通过
+
 2020年5月7日
 * 添加了对 React Native v0.62.* 的支持

@@ -19,6 +19,9 @@ module.exports = () => {
             console.log(`"getJSBundleFile" is already overridden`);
         } else {
             var reactNativeHostInstantiation = linkTools.reactNativeHostInstantiation;
+            if(mainApplicationContents.indexOf(reactNativeHostInstantiation) < 0) {
+                reactNativeHostInstantiation = 'new DefaultReactNativeHost(this) {';
+            }
             mainApplicationContents = mainApplicationContents.replace(reactNativeHostInstantiation,
                 `${reactNativeHostInstantiation}${getJSBundleFileOverride}`);
             if(mainApplicationContents.indexOf('import com.microsoft.codepush.react.CodePush;') < 0){
@@ -53,14 +56,26 @@ module.exports = () => {
 
     // 2. Add the codepush.gradle build task definitions
     var buildGradleContents = fs.readFileSync(buildGradlePath, "utf8");
-    var reactGradleLink = buildGradleContents.match(/\napply from: ["'].*?react\.gradle["']/)[0];
-    var codePushGradleLink = linkTools.codePushGradleLink;
-    if (~buildGradleContents.indexOf(codePushGradleLink)) {
-        console.log(`"codepush.gradle" is already linked in the build definition`);
+    var reactGradleLinks = buildGradleContents.match(/\napply from: ["'].*?react\.gradle["']/);
+    if(reactGradleLinks && reactGradleLinks.length > 0) {
+        var reactGradleLink = reactGradleLinks[0];
+        var codePushGradleLink = linkTools.codePushGradleLink;
+        if (~buildGradleContents.indexOf(codePushGradleLink)) {
+            console.log(`"codepush.gradle" is already linked in the build definition`);
+        } else {
+            buildGradleContents = buildGradleContents.replace(reactGradleLink,
+                `${reactGradleLink}${codePushGradleLink}`);
+            fs.writeFileSync(buildGradlePath, buildGradleContents);
+        }
     } else {
-        buildGradleContents = buildGradleContents.replace(reactGradleLink,
-            `${reactGradleLink}${codePushGradleLink}`);
-        fs.writeFileSync(buildGradlePath, buildGradleContents);
+        if(buildGradleContents.indexOf('buildType.resValue \'string\', "CODE_PUSH_APK_BUILD_TIME"') < 0) {
+            buildGradleContents += `
+            android.buildTypes.each { buildType ->
+                buildType.resValue 'string', "CODE_PUSH_APK_BUILD_TIME", String.format("\"%d\"", System.currentTimeMillis())
+            }
+            `;
+            fs.writeFileSync(buildGradlePath, buildGradleContents);
+        }
     }
 
     if (fs.existsSync(settingsGradlePath)) {
