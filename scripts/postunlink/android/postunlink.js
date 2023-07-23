@@ -45,13 +45,17 @@ module.exports = () => {
     http://code-push.cn`);
     } else {
         var buildGradleContents = fs.readFileSync(buildGradlePath, "utf8");
+
+        buildGradleContents.replace(linkTools.codePushGradleLink2, '');
+
         var codePushGradleLink = linkTools.codePushGradleLink;
         if (!~buildGradleContents.indexOf(codePushGradleLink)) {
             console.log(`"codepush.gradle" is already unlinked in the build definition`);
         } else {
             buildGradleContents = buildGradleContents.replace(`${codePushGradleLink}`,"");
-            fs.writeFileSync(buildGradlePath, buildGradleContents);
         }
+
+        fs.writeFileSync(buildGradlePath, buildGradleContents);
     }
 
     // 3. Remove deployment key

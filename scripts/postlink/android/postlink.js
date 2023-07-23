@@ -69,11 +69,7 @@ module.exports = () => {
         }
     } else {
         if(buildGradleContents.indexOf('buildType.resValue \'string\', "CODE_PUSH_APK_BUILD_TIME"') < 0) {
-            buildGradleContents += `
-            android.buildTypes.each { buildType ->
-                buildType.resValue 'string', "CODE_PUSH_APK_BUILD_TIME", String.format("\"%d\"", System.currentTimeMillis())
-            }
-            `;
+            buildGradleContents += linkTools.codePushGradleLink2;
             fs.writeFileSync(buildGradlePath, buildGradleContents);
         }
     }

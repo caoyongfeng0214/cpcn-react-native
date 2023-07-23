@@ -17,6 +17,12 @@ exports.codePushGradleLink = `\napply from: "../../node_modules/cpcn-react-nativ
 exports.settingsGradeInclude = "include ':app', ':cpcn-react-native'";
 exports.deploymentKeyName = "reactNativeCodePush_androidDeploymentKey";
 
+exports.codePushGradleLink2 = `
+android.buildTypes.each { buildType ->
+    buildType.resValue 'string', "CODE_PUSH_APK_BUILD_TIME", String.format("\\"%d\\"", System.currentTimeMillis())
+}
+`
+
 exports.getMainApplicationLocation = function () {
     return findMainApplication() || glob.sync("**/MainApplication.java", ignoreFolders)[0];
 }
