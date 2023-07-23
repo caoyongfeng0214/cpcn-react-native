@@ -224,7 +224,7 @@ module.exports = () => {
                 if(exitCode == 0){
                     resolve();
                 }else{
-                    reject('exec pod install exited with code ' + exitCode + '.\r\nPlease try again');
+                    reject('exec pod install exited with code ' + exitCode + '.\r\nPlease try again.\r\nOr\r\nExec "npx pod-install" in project folder');
                 }
             });
         });
