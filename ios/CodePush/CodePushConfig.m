@@ -45,11 +45,10 @@ static NSString * const PublicKeyKey = @"publicKey";
         [userDefaults synchronize];
     }
 
-    // if (!serverURL) {
-    //     serverURL = @"https://codepush.azurewebsites.net/";
-    // }
-
-    serverURL = @"http://code-push.cn/";
+    if (!serverURL) {
+        // serverURL = @"https://codepush.azurewebsites.net/";
+        serverURL = @"https://code-push.cn/";
+    }
 
     _configDictionary = [NSMutableDictionary dictionary];
 
