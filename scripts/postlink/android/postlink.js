@@ -14,20 +14,42 @@ module.exports = () => {
     var getJSBundleFileOverride = linkTools.getJSBundleFileOverride;
 
     if (mainApplicationPath) {
+        var isKt = mainApplicationPath.endsWith('.kt');
+
         var mainApplicationContents = fs.readFileSync(mainApplicationPath, "utf8");
-        if (linkTools.isJsBundleOverridden(mainApplicationContents)) {
-            console.log(`"getJSBundleFile" is already overridden`);
+        
+        if(isKt) {
+            getJSBundleFileOverride = 'override fun getJSBundleFile(): String = CodePush.getJSBundleFile()';
+            let replaced = false;
+            if(mainApplicationContents.indexOf(getJSBundleFileOverride) < 0) {
+                replaced = true;
+                var reactNativeHostInstantiation = 'object : DefaultReactNativeHost(this) {';
+                mainApplicationContents = mainApplicationContents.replace(reactNativeHostInstantiation,
+                    `${reactNativeHostInstantiation}\r\n\t\t\t\t${getJSBundleFileOverride}\r\n`);
+            }
+            var importCodePush = 'import com.microsoft.codepush.react.CodePush;';
+            if(mainApplicationContents.indexOf(importCodePush) < 0) {
+                replaced = true;
+                mainApplicationContents = mainApplicationContents.replace('class MainApplication', `${importCodePush}\r\nclass MainApplication`);
+            }
+            if(replaced) {
+                fs.writeFileSync(mainApplicationPath, mainApplicationContents);
+            }
         } else {
-            var reactNativeHostInstantiation = linkTools.reactNativeHostInstantiation;
-            if(mainApplicationContents.indexOf(reactNativeHostInstantiation) < 0) {
-                reactNativeHostInstantiation = 'new DefaultReactNativeHost(this) {';
+            if (linkTools.isJsBundleOverridden(mainApplicationContents)) {
+                console.log(`"getJSBundleFile" is already overridden`);
+            } else {
+                var reactNativeHostInstantiation = linkTools.reactNativeHostInstantiation;
+                if(mainApplicationContents.indexOf(reactNativeHostInstantiation) < 0) {
+                    reactNativeHostInstantiation = 'new DefaultReactNativeHost(this) {';
+                }
+                mainApplicationContents = mainApplicationContents.replace(reactNativeHostInstantiation,
+                    `${reactNativeHostInstantiation}${getJSBundleFileOverride}`);
+                if(mainApplicationContents.indexOf('import com.microsoft.codepush.react.CodePush;') < 0){
+                    mainApplicationContents = mainApplicationContents.replace("public class MainApplication", "import com.microsoft.codepush.react.CodePush;\r\npublic class MainApplication");
+                }
+                fs.writeFileSync(mainApplicationPath, mainApplicationContents);
             }
-            mainApplicationContents = mainApplicationContents.replace(reactNativeHostInstantiation,
-                `${reactNativeHostInstantiation}${getJSBundleFileOverride}`);
-            if(mainApplicationContents.indexOf('import com.microsoft.codepush.react.CodePush;') < 0){
-                mainApplicationContents = mainApplicationContents.replace("public class MainApplication", "import com.microsoft.codepush.react.CodePush;\r\npublic class MainApplication");
-            }
-            fs.writeFileSync(mainApplicationPath, mainApplicationContents);
         }
     } else {
         var mainActivityPath = linkTools.getMainActivityPath();

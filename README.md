@@ -6,13 +6,14 @@
 ~~[Footprint](http://code-push.cn/docs/1700.htm)可多维度分析用户的行为，让你更懂你的用户。它已被集成在了[cpcn-react-native](http://code-push.cn/docs/1100.htm)中。~~ （已被从 cpcn-react-native 中移除）
 
 ## 文档
-[http://code-push.cn/docs/1100.htm](http://code-push.cn/docs/1100.htm)
-
-[http://code-push.cn/docs/1700.htm](http://code-push.cn/docs/1700.htm)
+[http://code-push.cn/docs/1600.htm](http://code-push.cn/docs/1600.htm)
 
 ## 日志
+2024年3月8日
+* 在 React Native v0.73.* 上测试通过
+
 2023年7月23日
-* 在 React Native v0.7*.* 上测试通过
+* 在 React Native v0.72.* 上测试通过
 
 2020年5月7日
 * 添加了对 React Native v0.62.* 的支持

@@ -11,13 +11,33 @@ module.exports = () => {
     var getJSBundleFileOverride = linkTools.getJSBundleFileOverride;
 
     if (mainApplicationPath) {
+        var isKt = mainApplicationPath.endsWith('.kt');
+
         var mainApplicationContents = fs.readFileSync(mainApplicationPath, "utf8");
-        if (!linkTools.isJsBundleOverridden(mainApplicationContents)) {
-            console.log(`"getJSBundleFile" is already removed`);
+
+        if(isKt) {
+            getJSBundleFileOverride = 'override fun getJSBundleFile(): String = CodePush.getJSBundleFile()';
+            var replaced = false;
+            if(mainApplicationContents.indexOf(getJSBundleFileOverride) > 0) {
+                replaced = true;
+                mainApplicationContents = mainApplicationContents.replace(`${getJSBundleFileOverride}\r\n`, '').replace(`${getJSBundleFileOverride}`, '');
+            }
+            var importCodePush = 'import com.microsoft.codepush.react.CodePush;';
+            if(mainApplicationContents.indexOf(importCodePush) > 0) {
+                replaced = true;
+                mainApplicationContents = mainApplicationContents.replace(`${importCodePush}\r\n`, '').replace(`${importCodePush}`, '');
+            }
+            if(replaced) {
+                fs.writeFileSync(mainApplicationPath, mainApplicationContents);
+            }
         } else {
-            mainApplicationContents = mainApplicationContents.replace(`${getJSBundleFileOverride}`, "");
-            mainApplicationContents = mainApplicationContents.replace('import com.microsoft.codepush.react.CodePush;\r\n', '').replace('import com.microsoft.codepush.react.CodePush;', '');
-            fs.writeFileSync(mainApplicationPath, mainApplicationContents);
+            if (!linkTools.isJsBundleOverridden(mainApplicationContents)) {
+                console.log(`"getJSBundleFile" is already removed`);
+            } else {
+                mainApplicationContents = mainApplicationContents.replace(`${getJSBundleFileOverride}`, "");
+                mainApplicationContents = mainApplicationContents.replace('import com.microsoft.codepush.react.CodePush;\r\n', '').replace('import com.microsoft.codepush.react.CodePush;', '');
+                fs.writeFileSync(mainApplicationPath, mainApplicationContents);
+            }
         }
     } else {
         var mainActivityPath = linkTools.getMainActivityPath();

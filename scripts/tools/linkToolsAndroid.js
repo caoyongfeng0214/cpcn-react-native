@@ -24,7 +24,7 @@ android.buildTypes.each { buildType ->
 `
 
 exports.getMainApplicationLocation = function () {
-    return findMainApplication() || glob.sync("**/MainApplication.java", ignoreFolders)[0];
+    return findMainApplication() || glob.sync("**/MainApplication.java", ignoreFolders)[0] || glob.sync("**/MainApplication.kt", ignoreFolders)[0];
 }
 
 exports.getMainActivityPath = function () {
@@ -64,5 +64,8 @@ function findMainApplication() {
 
     var nameParts = appName.split('.');
     var searchPath = glob.sync("**/" + nameParts[nameParts.length - 1] + ".java", ignoreFolders)[0];
+    if(!searchPath) {
+        searchPath = glob.sync("**/" + nameParts[nameParts.length - 1] + ".kt", ignoreFolders)[0];
+    }
     return searchPath;
 }
