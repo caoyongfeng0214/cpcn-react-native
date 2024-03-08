@@ -1,6 +1,6 @@
 {
   "name": "cpcn-react-native",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "react native应用热更新",
   "main": "CodePush.js",
   "repository": {
